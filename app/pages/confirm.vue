@@ -7,5 +7,7 @@ watchEffect(() => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center">Connexion…</div>
+  <div class="min-h-screen flex items-center justify-center">
+    Connexion…
+  </div>
 </template>

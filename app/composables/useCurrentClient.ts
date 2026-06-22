@@ -6,7 +6,7 @@ export function pickDefaultClient(clients: ClientRow[], savedId: string | null):
     const found = clients.find(c => c.id === savedId)
     if (found) return found
   }
-  return clients[0]
+  return clients[0] ?? null
 }
 
 const STORAGE_KEY = 'an:current-client'

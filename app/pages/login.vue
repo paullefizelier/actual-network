@@ -27,17 +27,42 @@ async function onSubmit() {
   <div class="min-h-screen flex items-center justify-center p-4">
     <UCard class="w-full max-w-sm">
       <template #header>
-        <h1 class="text-lg font-semibold">Pilotage Network</h1>
+        <h1 class="text-lg font-semibold">
+          Pilotage Network
+        </h1>
       </template>
-      <form class="space-y-4" @submit.prevent="onSubmit">
+      <form
+        class="space-y-4"
+        @submit.prevent="onSubmit"
+      >
         <UFormField label="Email">
-          <UInput v-model="email" type="email" autocomplete="email" class="w-full" />
+          <UInput
+            v-model="email"
+            type="email"
+            autocomplete="email"
+            class="w-full"
+          />
         </UFormField>
         <UFormField label="Mot de passe">
-          <UInput v-model="password" type="password" autocomplete="current-password" class="w-full" />
+          <UInput
+            v-model="password"
+            type="password"
+            autocomplete="current-password"
+            class="w-full"
+          />
         </UFormField>
-        <UAlert v-if="error" color="error" :title="error" />
-        <UButton type="submit" block :loading="loading">Se connecter</UButton>
+        <UAlert
+          v-if="error"
+          color="error"
+          :title="error"
+        />
+        <UButton
+          type="submit"
+          block
+          :loading="loading"
+        >
+          Se connecter
+        </UButton>
       </form>
     </UCard>
   </div>
