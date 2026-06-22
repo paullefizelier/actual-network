@@ -12,6 +12,7 @@ const accountsResource = useClientResource<Account>('accounts')
 const contactsResource = useClientResource<Contact>('contacts')
 const eventsResource = useClientResource<EventRow>('events')
 const participationsResource = useClientResource<Participation>('participations')
+const { categories: settingsCategories, load: loadSettings } = useClientSettings()
 
 const accounts = ref<Account[]>([])
 const contacts = ref<Contact[]>([])
@@ -110,7 +111,9 @@ async function loadData() {
   }
 }
 
-onMounted(loadData)
+onMounted(async () => {
+  await Promise.all([loadData(), loadSettings().catch(() => {})])
+})
 
 async function onSubmit() {
   // Manual validation
@@ -396,7 +399,16 @@ async function onSubmit() {
           </UFormField>
 
           <UFormField label="Catégorie">
+            <USelectMenu
+              v-if="settingsCategories.length > 0"
+              v-model="category"
+              :items="settingsCategories"
+              placeholder="Sélectionner une catégorie…"
+              class="w-full"
+              clearable
+            />
             <UInput
+              v-else
               v-model="category"
               placeholder="ex. Commerce, Industrie…"
               class="w-full"
