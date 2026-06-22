@@ -1,13 +1,17 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '~/types/database'
 
-type TableName = keyof Database['public']['Tables']
+// Tables with a client_id column (everything except the clients table itself).
+type ScopedTable = Exclude<keyof Database['public']['Tables'], 'clients'>
 
 export function withClientId<T extends Record<string, unknown>>(payload: T, clientId: string) {
   return { ...payload, client_id: clientId }
 }
 
-export function useClientResource<Row>(table: TableName) {
-  const supabase = useSupabaseClient<Database>()
+export function useClientResource<Row>(table: ScopedTable) {
+  // The generic-over-tables shape can't satisfy supabase-js's per-table column
+  // typing, so we use an untyped client here; callers get typed rows via <Row>.
+  const supabase = useSupabaseClient() as unknown as SupabaseClient
   const { current } = useCurrentClient()
 
   function requireClient(): string {
