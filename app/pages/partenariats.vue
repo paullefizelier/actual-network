@@ -54,7 +54,7 @@ async function onSubmit() {
     open.value = false
     await refresh()
   } catch {
-    toast.add({ title: "Échec de l'enregistrement", color: 'error' })
+    toast.add({ title: 'Échec de l\'enregistrement', color: 'error' })
   }
 }
 
@@ -81,12 +81,19 @@ const columns: TableColumn<Partnership>[] = [
       <h1 class="text-xl font-semibold">
         Partenariats
       </h1>
-      <UButton icon="i-lucide-plus" @click="openCreate">
+      <UButton
+        icon="i-lucide-plus"
+        @click="openCreate"
+      >
         Ajouter
       </UButton>
     </div>
 
-    <UTable :data="rows" :columns="columns" :loading="loading">
+    <UTable
+      :data="rows"
+      :columns="columns"
+      :loading="loading"
+    >
       <template #actions-cell="{ row }">
         <div class="flex gap-1 justify-end">
           <UButton
@@ -107,20 +114,53 @@ const columns: TableColumn<Partnership>[] = [
       </template>
     </UTable>
 
-    <UModal v-model:open="open" :title="editing ? 'Modifier le partenariat' : 'Nouveau partenariat'">
+    <UModal
+      v-model:open="open"
+      :title="editing ? 'Modifier le partenariat' : 'Nouveau partenariat'"
+    >
       <template #body>
-        <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
-          <UFormField name="name" label="Nom" required>
-            <UInput v-model="state.name" class="w-full" />
+        <UForm
+          :schema="schema"
+          :state="state"
+          class="space-y-4"
+          @submit="onSubmit"
+        >
+          <UFormField
+            name="name"
+            label="Nom"
+            required
+          >
+            <UInput
+              v-model="state.name"
+              class="w-full"
+            />
           </UFormField>
-          <UFormField name="type" label="Type">
-            <UInput v-model="state.type" placeholder="ex. Club sportif" class="w-full" />
+          <UFormField
+            name="type"
+            label="Type"
+          >
+            <UInput
+              v-model="state.type"
+              placeholder="ex. Club sportif"
+              class="w-full"
+            />
           </UFormField>
-          <UFormField name="notes" label="Notes">
-            <UTextarea v-model="state.notes" :rows="3" class="w-full" />
+          <UFormField
+            name="notes"
+            label="Notes"
+          >
+            <UTextarea
+              v-model="state.notes"
+              :rows="3"
+              class="w-full"
+            />
           </UFormField>
           <div class="flex justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="open = false">
+            <UButton
+              color="neutral"
+              variant="ghost"
+              @click="open = false"
+            >
               Annuler
             </UButton>
             <UButton type="submit">
