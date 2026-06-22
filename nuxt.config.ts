@@ -8,19 +8,6 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
-  supabase: {
-    url: process.env.NUXT_PUBLIC_SUPABASE_URL,
-    key: process.env.NUXT_PUBLIC_SUPABASE_KEY,
-    serviceKey: process.env.NUXT_SUPABASE_SECRET_KEY,
-    types: '~/types/database.ts',
-    redirectOptions: {
-      login: '/login',
-      callback: '/confirm',
-      exclude: ['/login'],
-      saveRedirectToCookie: true
-    }
-  },
-
   routeRules: {},
 
   compatibilityDate: '2025-01-15',
@@ -31,6 +18,19 @@ export default defineNuxtConfig({
         commaDangle: 'never',
         braceStyle: '1tbs'
       }
+    }
+  },
+
+  supabase: {
+    url: process.env.NUXT_PUBLIC_SUPABASE_URL,
+    key: process.env.NUXT_PUBLIC_SUPABASE_KEY,
+    serviceKey: process.env.NUXT_SUPABASE_SECRET_KEY,
+    types: '~/types/database.ts',
+    redirectOptions: {
+      login: '/login',
+      callback: '/confirm',
+      exclude: ['/login'],
+      saveRedirectToCookie: true
     }
   }
 })
