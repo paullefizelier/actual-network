@@ -20,7 +20,7 @@ const eventResource = useClientResource<EventRow>('events')
 const account = ref<Account | null>(null)
 const contacts = ref<Contact[]>([])
 const participations = ref<Participation[]>([])
-const eventMap = ref(new Map<string, { name: string; date: string | null }>())
+const eventMap = ref(new Map<string, { name: string, date: string | null }>())
 const loading = ref(true)
 const notFound = ref(false)
 
@@ -87,7 +87,7 @@ const contactSchema = z.object({
   fonction: z.string().optional(),
   email: z.string().email('Email invalide').optional().or(z.literal('')),
   tel: z.string().optional(),
-  lead_level: z.enum(['reseau', 'patron', 'interne']).nullable().optional()
+  lead_level: z.enum(['reseau', 'patron', 'interne']).optional()
 })
 type ContactState = z.output<typeof contactSchema>
 const contactState = reactive<Partial<ContactState>>({
@@ -174,7 +174,7 @@ async function loadData() {
     contacts.value = allContacts.filter(c => c.account_id === id)
     participations.value = allParticipations.filter(p => p.account_id === id)
 
-    const map = new Map<string, { name: string; date: string | null }>()
+    const map = new Map<string, { name: string, date: string | null }>()
     for (const ev of allEvents) {
       map.set(ev.id, { name: ev.name, date: ev.date ?? null })
     }
@@ -235,7 +235,10 @@ const participationColumns: TableColumn<Participation>[] = [
         to="/comptes"
         class="text-sm text-muted hover:underline flex items-center gap-1"
       >
-        <UIcon name="i-lucide-arrow-left" class="size-4" />
+        <UIcon
+          name="i-lucide-arrow-left"
+          class="size-4"
+        />
         Retour aux comptes
       </NuxtLink>
     </div>
