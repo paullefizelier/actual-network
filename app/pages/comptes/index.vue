@@ -24,7 +24,7 @@ const statusItems = [
 ]
 
 const filteredRows = computed(() =>
-  filterAccounts(rows.value as any[], { search: searchQuery.value, status: statusFilter.value }) as Account[]
+  filterAccounts(rows.value, { search: searchQuery.value, status: statusFilter.value })
 )
 
 const schema = z.object({
@@ -102,7 +102,7 @@ async function onSubmit() {
     open.value = false
     await refresh()
   } catch {
-    toast.add({ title: "Échec de l'enregistrement", color: 'error' })
+    toast.add({ title: 'Échec de l\'enregistrement', color: 'error' })
   }
 }
 

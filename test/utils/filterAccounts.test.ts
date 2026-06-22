@@ -4,7 +4,7 @@ import { filterAccounts } from '../../app/utils/filterAccounts'
 const rows = [
   { id: '1', name: 'Adrénaline', siret: '12345678900011', current_status: 'client' },
   { id: '2', name: 'Kumo', siret: null, current_status: 'prospect' }
-] as any[]
+]
 
 describe('filterAccounts', () => {
   it('filters by name (case-insensitive)', () => {
