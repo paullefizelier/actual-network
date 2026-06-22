@@ -41,7 +41,7 @@ const filteredRows = computed(() => {
 
 const schema = z.object({
   name: z.string().min(1, 'Nom requis'),
-  partnership_id: z.string().uuid().nullable().optional(),
+  partnership_id: z.string().uuid().optional(),
   type: z.string().optional(),
   date: z.string().optional(),
   lieu: z.string().optional(),
@@ -50,7 +50,7 @@ const schema = z.object({
 type State = z.output<typeof schema>
 const state = reactive<Partial<State>>({
   name: '',
-  partnership_id: null,
+  partnership_id: undefined,
   type: '',
   date: '',
   lieu: '',
@@ -74,7 +74,7 @@ onMounted(refresh)
 
 function openCreate() {
   editing.value = null
-  Object.assign(state, { name: '', partnership_id: null, type: '', date: '', lieu: '', notes: '' })
+  Object.assign(state, { name: '', partnership_id: undefined, type: '', date: '', lieu: '', notes: '' })
   open.value = true
 }
 
@@ -82,7 +82,7 @@ function openEdit(row: EventRow) {
   editing.value = row
   Object.assign(state, {
     name: row.name,
-    partnership_id: row.partnership_id ?? null,
+    partnership_id: row.partnership_id ?? undefined,
     type: row.type ?? '',
     date: row.date ?? '',
     lieu: row.lieu ?? '',
