@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { z } from 'zod'
 import type { Database } from '~/types/database'
 import { resolveAccount } from '~/utils/resolveAccount'
 
@@ -81,12 +80,6 @@ const statusItems = [
   { label: 'Prospect', value: 'prospect' },
   { label: 'Client', value: 'client' }
 ]
-
-// Validation schema — pure Zod, not used with UForm since submit is manual
-const schema = z.object({
-  event_id: z.string().uuid('Événement requis'),
-  direction: z.enum(['direct', 'indirect'], { error: 'Direction requise' })
-})
 
 // Reset contact when account changes
 watch(selectedAccountId, () => {
