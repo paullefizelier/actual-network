@@ -9,11 +9,12 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
 
   supabase: {
+    types: '~/types/database.ts',
     redirectOptions: {
       login: '/login',
       callback: '/confirm',
       exclude: ['/login'],
-      cookieRedirect: true
+      saveRedirectToCookie: true
     }
   },
 
