@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  modules: ['@nuxt/eslint', '@nuxt/ui', '@nuxt/scripts'],
+  modules: ['@nuxt/eslint', '@nuxt/ui', '@nuxt/scripts', '@nuxtjs/supabase'],
 
   devtools: {
     enabled: true
@@ -8,9 +8,16 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
-  routeRules: {
-    '/': { prerender: true }
+  supabase: {
+    redirectOptions: {
+      login: '/login',
+      callback: '/confirm',
+      exclude: ['/login'],
+      cookieRedirect: true
+    }
   },
+
+  routeRules: {},
 
   compatibilityDate: '2025-01-15',
 
