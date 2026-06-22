@@ -155,13 +155,30 @@ async function onSubmit() {
           color: 'warning'
         })
       } else {
-        const created = await accountsResource.create({
-          name: newAccountName.value.trim(),
-          siret: siretInput,
-          current_status: 'suspect'
-        })
-        accountId = created.id
-        // Reload accounts so next operations have fresh list
+        try {
+          const created = await accountsResource.create({
+            name: newAccountName.value.trim(),
+            siret: siretInput,
+            current_status: 'suspect'
+          })
+          accountId = created.id
+        } catch (createErr) {
+          // The SIRET may already exist for this client but be absent from the
+          // in-memory list (stale list / created by someone else). Postgres raises
+          // a unique_violation (23505); re-query and reuse instead of failing.
+          const code = (createErr as { code?: string })?.code
+          if (code !== '23505' || !siretInput) throw createErr
+          accounts.value = await accountsResource.list({ order: 'name', ascending: true })
+          const { match: existing } = resolveAccount(accounts.value, { siret: siretInput })
+          if (!existing) throw createErr
+          accountId = existing.id
+          toast.add({
+            title: 'Compte existant réutilisé (SIRET)',
+            description: 'Un compte avec ce SIRET existait déjà.',
+            color: 'warning'
+          })
+        }
+        // Reload accounts so next operations have a fresh list
         accounts.value = await accountsResource.list({ order: 'name', ascending: true })
       }
     } else {
