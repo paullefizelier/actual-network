@@ -6,6 +6,7 @@ await load()
 const nav = [
   { label: 'Pilotage', icon: 'i-lucide-gauge', to: '/' },
   { label: 'Comptes', icon: 'i-lucide-building-2', to: '/comptes' },
+  { label: 'Nouveau lead', icon: 'i-lucide-user-plus', to: '/leads/nouveau' },
   { label: 'Partenariats', icon: 'i-lucide-handshake', to: '/partenariats' },
   { label: 'Événements', icon: 'i-lucide-calendar', to: '/evenements' },
   { label: 'Import CA', icon: 'i-lucide-upload', to: '/import' },
