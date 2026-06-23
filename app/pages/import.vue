@@ -122,7 +122,9 @@ async function onFileChange(event: Event): Promise<void> {
   if (!file) return
   filename.value = file.name
   const buf = await file.arrayBuffer()
-  const wb = XLSX.read(buf, { type: 'array' })
+  // cellDates: emit real Date objects for date-typed cells (period columns),
+  // so parsePeriod receives a Date rather than an Excel serial number.
+  const wb = XLSX.read(buf, { type: 'array', cellDates: true })
   const sheetName = wb.SheetNames[0]
   if (!sheetName) {
     toast.add({ title: 'Fichier vide ou invalide', color: 'error' })
