@@ -31,10 +31,10 @@ const headers = ref<string[]>([])
 // ──────────────────────────────
 // Mapping state
 // ──────────────────────────────
-const mappingSiret = ref<string | null>(null)
-const mappingPeriod = ref<string | null>(null)
-const mappingAmount = ref<string | null>(null)
-const mappingActivityLine = ref<string | null>(null)
+const mappingSiret = ref<string | undefined>(undefined)
+const mappingPeriod = ref<string | undefined>(undefined)
+const mappingAmount = ref<string | undefined>(undefined)
+const mappingActivityLine = ref<string | undefined>(undefined)
 const rememberMapping = ref(false)
 
 function readImportMapping(settings: unknown): Partial<ColumnMapping> {
@@ -138,10 +138,10 @@ async function onFileChange(event: Event): Promise<void> {
   const firstRow = rows[0]
   headers.value = firstRow ? Object.keys(firstRow) : []
   // Reset mapping fields that are no longer present in the new file
-  if (mappingSiret.value && !headers.value.includes(mappingSiret.value)) mappingSiret.value = null
-  if (mappingPeriod.value && !headers.value.includes(mappingPeriod.value)) mappingPeriod.value = null
-  if (mappingAmount.value && !headers.value.includes(mappingAmount.value)) mappingAmount.value = null
-  if (mappingActivityLine.value && !headers.value.includes(mappingActivityLine.value)) mappingActivityLine.value = null
+  if (mappingSiret.value && !headers.value.includes(mappingSiret.value)) mappingSiret.value = undefined
+  if (mappingPeriod.value && !headers.value.includes(mappingPeriod.value)) mappingPeriod.value = undefined
+  if (mappingAmount.value && !headers.value.includes(mappingAmount.value)) mappingAmount.value = undefined
+  if (mappingActivityLine.value && !headers.value.includes(mappingActivityLine.value)) mappingActivityLine.value = undefined
 }
 
 // ──────────────────────────────
@@ -229,12 +229,20 @@ async function commit(): Promise<void> {
       status: 'done'
     }) as RevenueImport
 
+    // Coerce any out-of-enum activity value to 'autre' so the insert never fails
+    // on the activity_line enum (talent/emploi/formation/autre).
+    const ACTIVITY_LINES = ['talent', 'emploi', 'formation', 'autre']
+    const coerceActivity = (v: string | null): string => {
+      const k = (v ?? '').trim().toLowerCase()
+      return ACTIVITY_LINES.includes(k) ? k : 'autre'
+    }
+
     const linePayloads: Record<string, unknown>[] = matched.map(m => ({
       account_id: m.account.id,
       import_id: importRow.id,
       period: m.line.period,
       amount: m.line.amount,
-      activity_line: m.line.activity_line ?? 'autre',
+      activity_line: coerceActivity(m.line.activity_line),
       source: 'import'
     }))
 
