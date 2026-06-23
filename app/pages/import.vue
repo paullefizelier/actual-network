@@ -5,9 +5,11 @@ import type { TableColumn } from '@nuxt/ui'
 import type { Database } from '~/types/database'
 import { parseRows, matchBySiret } from '~/domain/importParser'
 import type { ColumnMapping, ParsedLine } from '~/domain/importParser'
+import { findDuplicatePeriods } from '~/utils/findDuplicatePeriods'
 
 type Account = Database['public']['Tables']['accounts']['Row']
 type RevenueImport = Database['public']['Tables']['revenue_imports']['Row']
+type RevenueLineRow = Database['public']['Tables']['revenue_lines']['Row']
 
 useHead({ title: 'Import CA' })
 
@@ -18,7 +20,7 @@ const { current } = useCurrentClient()
 
 const accountsResource = useClientResource<Account>('accounts')
 const revenueImportsResource = useClientResource<RevenueImport>('revenue_imports')
-const revenueLinesResource = useClientResource<Record<string, unknown>>('revenue_lines')
+const revenueLinesResource = useClientResource<RevenueLineRow>('revenue_lines')
 
 // ──────────────────────────────
 // Upload state
@@ -90,6 +92,16 @@ async function saveMapping(mapping: ColumnMapping): Promise<void> {
 }
 
 // ──────────────────────────────
+// Existing revenue lines (for duplicate detection)
+// ──────────────────────────────
+const existingRevenueLines = ref<Pick<RevenueLineRow, 'account_id' | 'period'>[]>([])
+
+async function loadExistingRevenueLines(): Promise<void> {
+  const rows = await revenueLinesResource.list({ order: 'period', ascending: false })
+  existingRevenueLines.value = rows.map(r => ({ account_id: r.account_id, period: r.period }))
+}
+
+// ──────────────────────────────
 // Accounts
 // ──────────────────────────────
 const accounts = ref<Account[]>([])
@@ -110,7 +122,7 @@ async function loadHistory(): Promise<void> {
 }
 
 onMounted(async () => {
-  await Promise.all([loadAccounts(), loadHistory(), loadSavedMapping()])
+  await Promise.all([loadAccounts(), loadHistory(), loadSavedMapping(), loadExistingRevenueLines()])
 })
 
 // ──────────────────────────────
@@ -186,6 +198,18 @@ const unmatchedSirets = computed((): string[] => {
     seen.add(l.siret)
   }
   return Array.from(seen)
+})
+
+// ──────────────────────────────
+// Duplicate detection
+// ──────────────────────────────
+const duplicates = computed((): { account_id: string, period: string }[] => {
+  if (!preview.value) return []
+  const toImport = preview.value.matched.map(m => ({
+    account_id: m.account.id,
+    period: m.line.period
+  }))
+  return findDuplicatePeriods(toImport, existingRevenueLines.value)
 })
 
 // ──────────────────────────────
@@ -274,7 +298,7 @@ async function commit(): Promise<void> {
     headers.value = []
     if (fileInput.value) fileInput.value.value = ''
 
-    await loadHistory()
+    await Promise.all([loadHistory(), loadExistingRevenueLines()])
   } catch {
     toast.add({ title: 'Erreur lors de l\'import', color: 'error' })
     await loadHistory()
@@ -511,6 +535,13 @@ const historyColumns: TableColumn<RevenueImport>[] = [
           {{ preview.matched.length }} ligne(s) seront importées.
           {{ preview.unmatched.length }} ligne(s) non matchée(s) seront ignorées.
         </p>
+        <UAlert
+          v-if="duplicates.length > 0"
+          color="warning"
+          icon="i-lucide-triangle-alert"
+          class="mb-4"
+          :title="`${duplicates.length} ligne(s) concernent des comptes/périodes déjà importés — valider créera des doublons et faussera le CA. Annulez l'import existant d'abord.`"
+        />
         <UButton
           color="primary"
           :loading="committing"
