@@ -104,9 +104,7 @@ export function parseRows(
   const lines: ParsedLine[] = []
   const errors: { row: number, reason: string }[] = []
 
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i]
-
+  for (const [i, row] of rows.entries()) {
     const rawSiret = row[mapping.siret]
     const siretStr = typeof rawSiret === 'string' ? rawSiret : String(rawSiret ?? '')
     const normalizedSiret = normalizeSiret(siretStr)
