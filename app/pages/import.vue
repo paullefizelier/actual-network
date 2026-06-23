@@ -247,7 +247,13 @@ async function commit(): Promise<void> {
     }))
 
     if (linePayloads.length > 0) {
-      await revenueLinesResource.createMany(linePayloads)
+      try {
+        await revenueLinesResource.createMany(linePayloads)
+      } catch (linesErr) {
+        // Roll back the import header so we never leave an orphan import with no lines.
+        await revenueImportsResource.remove(importRow.id).catch(() => {})
+        throw linesErr
+      }
     }
 
     if (rememberMapping.value && activeMapping.value) {
@@ -269,6 +275,7 @@ async function commit(): Promise<void> {
     await loadHistory()
   } catch {
     toast.add({ title: 'Erreur lors de l\'import', color: 'error' })
+    await loadHistory()
   } finally {
     committing.value = false
   }
