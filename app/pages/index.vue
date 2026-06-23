@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { VisXYContainer, VisLine, VisAxis } from '@unovis/vue'
 import type { TableColumn } from '@nuxt/ui'
-import type { DashboardData } from '~/domain/dashboard'
-import type { PartnershipRow } from '~/domain/dashboard'
+import type { DashboardData, PartnershipRow } from '~/domain/dashboard'
 
 const eurFormatter = new Intl.NumberFormat('fr-FR', {
   style: 'currency',
@@ -33,17 +32,6 @@ const filterPartnershipId = ref<string | undefined>(undefined)
 const partnershipItems = computed(() =>
   partnerships.value.map(p => ({ label: p.name, value: p.id }))
 )
-
-const selectedPartnership = computed({
-  get() {
-    if (filterPartnershipId.value === undefined) return undefined
-    return partnershipItems.value.find(p => p.value === filterPartnershipId.value)
-  },
-  set(item: { label: string, value: string } | undefined) {
-    filterPartnershipId.value = item?.value
-    applyFilters()
-  }
-})
 
 function buildFilters() {
   return {
@@ -151,12 +139,13 @@ onMounted(async () => {
         <div class="flex flex-col gap-1">
           <label class="text-xs text-muted font-medium uppercase tracking-wide">Partenariat</label>
           <USelectMenu
-            v-model="selectedPartnership"
+            v-model="filterPartnershipId"
             :items="partnershipItems"
             value-key="value"
             placeholder="Tous"
             clearable
             class="w-56"
+            @update:model-value="applyFilters"
           />
         </div>
         <UButton
