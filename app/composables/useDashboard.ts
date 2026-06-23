@@ -33,8 +33,8 @@ export function useDashboard(): {
   async function load(filters?: DashboardFilters): Promise<void> {
     loading.value = true
     try {
-      const [accounts, allParticipations, allRevenueLines, allEvents, partnerships] =
-        await Promise.all([
+      const [accounts, allParticipations, allRevenueLines, allEvents, partnerships]
+        = await Promise.all([
           accountResource.list(),
           participationResource.list(),
           revenueLineResource.list(),

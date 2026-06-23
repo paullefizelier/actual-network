@@ -114,8 +114,8 @@ export function buildDashboard(input: BuildDashboardInput): DashboardData {
   }
   const topPartnerships = Array.from(partnershipLeads.entries())
     .map(([partnershipId, leadsCount]) => {
-      const name =
-        partnershipId !== null
+      const name
+        = partnershipId !== null
           ? (partnershipsMap.get(partnershipId)?.name ?? 'Sans partenariat')
           : 'Sans partenariat'
       return { partnership_id: partnershipId, name, leads: leadsCount }
