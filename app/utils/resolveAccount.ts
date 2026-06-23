@@ -1,10 +1,8 @@
+import { normalizeSiret } from './normalizeSiret'
+
 export interface AccountLike {
   id: string
   siret: string | null
-}
-
-function normalizeSiret(s: string | null | undefined): string {
-  return (s ?? '').replace(/\s+/g, '')
 }
 
 export function resolveAccount<T extends AccountLike>(

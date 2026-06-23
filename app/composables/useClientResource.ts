@@ -60,5 +60,14 @@ export function useClientResource<Row>(table: ScopedTable) {
     if (error) throw error
   }
 
-  return { list, create, update, remove }
+  async function createMany(payloads: Record<string, unknown>[]): Promise<Row[]> {
+    if (payloads.length === 0) return []
+    const cid = requireClient()
+    const rows = payloads.map(p => withClientId(p, cid))
+    const { data, error } = await supabase.from(table).insert(rows as never).select()
+    if (error) throw error
+    return (data ?? []) as Row[]
+  }
+
+  return { list, create, update, remove, createMany }
 }
