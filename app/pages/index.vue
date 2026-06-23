@@ -238,6 +238,7 @@ onMounted(async () => {
               </p>
               <p class="text-lg font-semibold">
                 {{ formatPct(data.statusCounts.clientPct) }}
+                <span class="text-xs font-normal text-muted">(global, hors filtres)</span>
               </p>
               <div class="flex gap-4 mt-2 text-sm text-muted">
                 <span>
@@ -268,13 +269,13 @@ onMounted(async () => {
             </UCard>
           </NuxtLink>
 
-          <!-- Nb partenariats -->
+          <!-- Nb partenariats (configurés) -->
           <UCard class="col-span-2">
             <p class="text-xs text-muted font-medium uppercase tracking-wide mb-1">
               Partenariats
             </p>
             <p class="text-lg font-semibold">
-              {{ data.topPartnerships.length }}
+              {{ partnerships.length }}
             </p>
           </UCard>
         </div>
@@ -326,6 +327,9 @@ onMounted(async () => {
           <template #header>
             <p class="text-sm font-medium">
               CA mensuel global
+            </p>
+            <p class="text-xs text-muted">
+              CA total importé (toutes lignes) — diffère du CA total réseau, qui n'attribue que les comptes passés par un événement.
             </p>
           </template>
 
