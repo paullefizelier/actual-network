@@ -480,7 +480,6 @@ const participationColumns: TableColumn<Participation>[] = [
             <span v-else>—</span>
           </template>
         </UTable>
-
       </div>
 
       <!-- CA section -->
