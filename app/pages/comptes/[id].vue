@@ -1,12 +1,20 @@
 <script setup lang="ts">
+import { VisXYContainer, VisLine, VisAxis, VisScatter } from '@unovis/vue'
 import { z } from 'zod'
 import type { TableColumn } from '@nuxt/ui'
 import type { Database } from '~/types/database'
+import {
+  monthlyTotals,
+  accountTotal,
+  computeLift
+} from '~/domain/attribution'
+import type { RevenueLine } from '~/domain/attribution'
 
 type Account = Database['public']['Tables']['accounts']['Row']
 type Contact = Database['public']['Tables']['contacts']['Row']
 type Participation = Database['public']['Tables']['participations']['Row']
 type EventRow = Database['public']['Tables']['events']['Row']
+type RevenueLineRow = Database['public']['Tables']['revenue_lines']['Row']
 
 const route = useRoute()
 const id = route.params.id as string
@@ -16,13 +24,52 @@ const accountResource = useClientResource<Account>('accounts')
 const contactResource = useClientResource<Contact>('contacts')
 const participationResource = useClientResource<Participation>('participations')
 const eventResource = useClientResource<EventRow>('events')
+const revenueLineResource = useClientResource<RevenueLineRow>('revenue_lines')
 
 const account = ref<Account | null>(null)
 const contacts = ref<Contact[]>([])
 const participations = ref<Participation[]>([])
 const eventMap = ref(new Map<string, { name: string, date: string | null }>())
+const revenueLines = ref<RevenueLine[]>([])
 const loading = ref(true)
 const notFound = ref(false)
+
+// --- Revenue helpers ---
+const eurFormatter = new Intl.NumberFormat('fr-FR', {
+  style: 'currency',
+  currency: 'EUR',
+  maximumFractionDigits: 0
+})
+
+function formatEur(amount: number): string {
+  return eurFormatter.format(amount)
+}
+
+const caTotal = computed(() => accountTotal(revenueLines.value))
+const chartData = computed(() => monthlyTotals(revenueLines.value))
+const hasRevenueData = computed(() => revenueLines.value.length > 0)
+
+const firstParticipationDate = computed<string | null>(() => {
+  const dates = participations.value
+    .map(p => p.entered_network_at)
+    .filter((d): d is string => d !== null)
+  if (dates.length === 0) return null
+  return dates.reduce((min, d) => (d < min ? d : min))
+})
+
+const lift = computed(() =>
+  computeLift(revenueLines.value, firstParticipationDate.value)
+)
+
+const liftDeltaColor = computed(() =>
+  lift.value.delta >= 0 ? 'text-green-600' : 'text-red-500'
+)
+
+const liftDeltaLabel = computed(() => {
+  const delta = lift.value.delta
+  const sign = delta >= 0 ? '+' : ''
+  return `${sign}${formatEur(delta)}`
+})
 
 // --- Account edit modal ---
 const openAccountEdit = ref(false)
@@ -158,11 +205,12 @@ async function loadData() {
   loading.value = true
   notFound.value = false
   try {
-    const [allAccounts, allContacts, allParticipations, allEvents] = await Promise.all([
+    const [allAccounts, allContacts, allParticipations, allEvents, allRevenueLines] = await Promise.all([
       accountResource.list({ order: 'name', ascending: true }),
       contactResource.list({ order: 'created_at', ascending: false }),
       participationResource.list({ order: 'entered_network_at', ascending: false }),
-      eventResource.list({ order: 'date', ascending: false })
+      eventResource.list({ order: 'date', ascending: false }),
+      revenueLineResource.list({ order: 'period', ascending: true })
     ])
 
     account.value = allAccounts.find(a => a.id === id) ?? null
@@ -173,6 +221,15 @@ async function loadData() {
 
     contacts.value = allContacts.filter(c => c.account_id === id)
     participations.value = allParticipations.filter(p => p.account_id === id)
+
+    revenueLines.value = allRevenueLines
+      .filter(r => r.account_id === id)
+      .map(r => ({
+        account_id: r.account_id,
+        period: r.period,
+        amount: Number(r.amount),
+        activity_line: r.activity_line
+      }))
 
     const map = new Map<string, { name: string, date: string | null }>()
     for (const ev of allEvents) {
@@ -424,9 +481,92 @@ const participationColumns: TableColumn<Participation>[] = [
           </template>
         </UTable>
 
-        <p class="text-xs text-muted italic">
-          Graphe CA — Phase 3
-        </p>
+      </div>
+
+      <!-- CA section -->
+      <div class="space-y-4">
+        <h2 class="text-lg font-semibold">
+          Chiffre d'affaires
+        </h2>
+
+        <!-- KPIs -->
+        <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <UCard>
+            <p class="text-xs text-muted font-medium uppercase tracking-wide mb-1">
+              CA total
+            </p>
+            <p class="text-lg font-semibold">
+              {{ formatEur(caTotal) }}
+            </p>
+          </UCard>
+
+          <UCard>
+            <p class="text-xs text-muted font-medium uppercase tracking-wide mb-1">
+              CA avant réseau
+            </p>
+            <p class="text-lg font-semibold">
+              {{ formatEur(lift.before) }}
+            </p>
+          </UCard>
+
+          <UCard>
+            <p class="text-xs text-muted font-medium uppercase tracking-wide mb-1">
+              CA après réseau
+            </p>
+            <p class="text-lg font-semibold">
+              {{ formatEur(lift.after) }}
+            </p>
+          </UCard>
+
+          <UCard>
+            <p class="text-xs text-muted font-medium uppercase tracking-wide mb-1">
+              Évolution
+            </p>
+            <p
+              class="text-lg font-semibold"
+              :class="liftDeltaColor"
+            >
+              {{ liftDeltaLabel }}
+            </p>
+          </UCard>
+        </div>
+
+        <!-- Chart -->
+        <UCard>
+          <template #header>
+            <p class="text-sm font-medium">
+              CA mensuel
+            </p>
+          </template>
+
+          <div
+            v-if="!hasRevenueData"
+            class="flex items-center justify-center py-12 text-sm text-muted italic"
+          >
+            Aucune donnée de CA importée
+          </div>
+
+          <ClientOnly v-else>
+            <VisXYContainer
+              :data="chartData"
+              :height="240"
+            >
+              <VisLine
+                :x="(_d: { period: string, amount: number }, i: number) => i"
+                :y="(d: { period: string, amount: number }) => d.amount"
+              />
+              <VisScatter
+                :x="(_d: { period: string, amount: number }, i: number) => i"
+                :y="(d: { period: string, amount: number }) => d.amount"
+              />
+              <VisAxis
+                type="x"
+                :tick-format="(i: number) => chartData[i]?.period?.slice(0, 7) ?? ''"
+              />
+              <VisAxis type="y" />
+            </VisXYContainer>
+          </ClientOnly>
+        </UCard>
       </div>
     </template>
 
